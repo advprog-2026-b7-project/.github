@@ -177,3 +177,27 @@ The current container architecture illustrates the microservice separation betwe
 Services are currently distributed across different hosting providers and infrastructure environments.
 
 ![Current Deployment Diagram](./current-deployment.png)
+
+## Future Architecture
+
+### Future System Context Diagram
+
+The future system context diagram introduces centralized infrastructure and improved communication patterns to support scalability, reliability, and maintainability as the platform grows.
+
+![Future Context Diagram](./future-context.png)
+
+---
+
+### Future Container Diagram
+
+The future container architecture introduces several new infrastructure components including an API Gateway, RabbitMQ for asynchronous communication, Redis for caching, and Cloudflare R2 for object storage. These additions improve consistency, scalability, and resilience across services.
+
+![Future Container Diagram](./future-container.png)
+
+---
+
+### Future Deployment Diagram
+
+The future deployment architecture consolidates services into a Kubernetes-based environment to simplify orchestration, scaling, networking, and infrastructure management.
+
+![Future Deployment Diagram](./future-deployment.png)
