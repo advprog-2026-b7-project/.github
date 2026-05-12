@@ -155,3 +155,25 @@ Typical flow:
 4. Create a pull request
 5. CI validation and code review
 6. Merge and deploy
+
+## Current Architecture Diagrams
+
+### Current System Context Diagram
+
+![Current Context Diagram](./current-context.png)
+
+---
+
+### Current Container Diagram
+
+The current container architecture illustrates the microservice separation between authentication, plantation, harvest, delivery, payment, and notification services. Each service is independently deployable and communicates primarily through REST APIs.
+
+![Current Container Diagram](./current-container.png)
+
+---
+
+### Current Deployment Diagram
+
+Services are currently distributed across different hosting providers and infrastructure environments.
+
+![Current Deployment Diagram](./current-deployment.png)
