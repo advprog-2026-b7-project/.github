@@ -182,8 +182,6 @@ Services are currently distributed across different hosting providers and infras
 
 ### Future System Context Diagram
 
-The future system context diagram introduces centralized infrastructure and improved communication patterns to support scalability, reliability, and maintainability as the platform grows.
-
 ![Future Context Diagram](./future-context.png)
 
 ---
@@ -201,3 +199,47 @@ The future container architecture introduces several new infrastructure componen
 The future deployment architecture consolidates services into a Kubernetes-based environment to simplify orchestration, scaling, networking, and infrastructure management.
 
 ![Future Deployment Diagram](./future-deployment.png)
+
+## Risk Mitigation - Deliverables G.3
+
+### Mengapa teknik Risk Storming diterapkan?
+
+Kami menerapkan teknik Risk Storming untuk mengidentifikasi, memprioritaskan, dan mengurangi risiko pada sistem MySawit yang menggunakan arsitektur microservice. Karena sistem terdiri dari banyak service yang saling terhubung, komunikasi antar service, deployment terpisah, dan penggunaan asynchronous event menjadi bagian penting yang perlu diperhatikan sejak awal pengembangan.
+
+Dengan Risk Storming, kami dapat mendiskusikan kemungkinan masalah yang dapat muncul ketika sistem berkembang dan digunakan dalam skala yang lebih besar. Teknik ini membantu kami memahami titik lemah pada arsitektur saat ini, menentukan risiko yang paling berbahaya, serta merancang solusi dan perubahan arsitektur yang lebih aman dan scalable untuk pengembangan ke depannya.
+
+---
+
+### Hasil Identifikasi Risiko
+
+Kami mendapati bahwa komunikasi frontend ke backend yang tidak konsisten menjadi risiko yang cukup tinggi. Beberapa service diakses langsung menggunakan URL masing-masing, sementara service lain menggunakan proxy melalui Next.js API routes. Kondisi ini menyebabkan tidak adanya satu titik terpusat untuk melakukan autentikasi, logging, dan rate limiting sehingga pengelolaan keamanan menjadi lebih sulit.
+
+Kami juga mendapati bahwa proses asynchronous payroll pada sistem saat ini belum berjalan dengan benar. `HarvestApprovedEvent` masih menggunakan `ApplicationEventPublisher` milik Spring yang hanya bekerja di dalam satu aplikasi dan tidak dapat digunakan untuk komunikasi antar microservice. Selain itu, subscriber pada payment service masih kosong sehingga approval harvest belum benar-benar menghasilkan data payroll.
+
+Kami mendapati bahwa penyimpanan foto harvest pada local filesystem juga menjadi risiko yang cukup tinggi. File dapat hilang ketika container restart atau redeploy, dan pendekatan ini menyulitkan horizontal scaling karena setiap instance service tidak berbagi file storage yang sama.
+
+Selain itu, deployment service yang tersebar di berbagai platform seperti Fly.io, Render, Koyeb, dan Vercel berpotensi menimbulkan masalah pada pengelolaan environment, networking, secret management, dan deployment coordination ketika sistem semakin besar.
+
+---
+
+### Strategi Mitigasi Risiko
+
+#### Komunikasi Frontend dan Backend yang Tidak Konsisten
+
+Mitigasi dilakukan dengan menambahkan API Gateway seperti NGINX atau Kong sebagai single entry point untuk seluruh request dari frontend. Dengan pendekatan ini, autentikasi JWT, request logging, dan rate limiting dapat dilakukan secara terpusat sehingga komunikasi antar service menjadi lebih konsisten dan aman.
+
+#### Asynchronous Payroll Flow Tidak Berjalan
+
+Mitigasi dilakukan dengan mengganti event internal Spring menjadi message broker RabbitMQ. Harvest Service akan mengirim event ke RabbitMQ dan service lain seperti Payment Service maupun Notification Service dapat mengonsumsi event tersebut secara asynchronous. Pendekatan ini membuat komunikasi antar service lebih reliable dan loosely coupled.
+
+#### Risiko Kehilangan File Harvest
+
+Mitigasi dilakukan dengan memindahkan penyimpanan file dari local filesystem ke Cloudflare R2 yang bersifat object storage dan kompatibel dengan S3. Dengan demikian, file tetap tersimpan meskipun terjadi redeploy atau scaling pada service.
+
+#### Deployment dan Infrastruktur yang Terpisah-Pisah
+
+Mitigasi dilakukan dengan memindahkan seluruh service ke Kubernetes cluster seperti GKE atau DigitalOcean Kubernetes. Pendekatan ini memberikan deployment environment yang lebih terpusat, mempermudah scaling, networking, serta pengelolaan secret dan observability antar service.
+
+#### Deployment Process yang Sulit Dikelola
+
+Mitigasi dilakukan dengan menambahkan pipeline CI/CD menggunakan GitHub Actions dan ArgoCD. Setiap perubahan kode akan otomatis dibuild, diuji, dan dideploy sehingga proses deployment menjadi lebih konsisten, reproducible, dan mudah dimonitor.
